@@ -1,0 +1,8 @@
+#!/bin/bash
+git checkout master
+git remote add upstream https://github.com/OHIF/Viewers.git
+git fetch upstream
+git checkout user
+git merge upstream/master
+git commit -m "merge master branch with user"
+git push --set-upstream origin user
