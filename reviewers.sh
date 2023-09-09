@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # git checkout master
 git remote add upstream https://github.com/OHIF/Viewers.git
 git fetch upstream
@@ -34,3 +35,14 @@ mkdir -p $src_dir
 wget https://lsb.orthanc-server.com/plugin-ohif/mainline/libOrthancOHIF.so -P "$src_dir"
 sudo cp $src_dir/libOrthancOHIF.so $plugin_dir
 sudo chmod +x $plugin_dir/libOrthancOHIF.so
+
+config_dir=/etc/orthanc
+this_dir_path="$(dirname "$(realpath "$0")")"
+this_config="$(readlink -f "$0")"
+fife_names=$(command ls "$this_dir_path/etc/orthanc")
+
+for f in $fife_names; do
+	sudo mv "$config_dir/$f" "$config_dir/$f".old
+	sudo ln -svf "$this_dir_path$config_dir" "$config_dir"
+done
+sudo service orthanc restart
