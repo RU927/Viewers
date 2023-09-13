@@ -6,10 +6,10 @@ config_dir=/etc/orthanc
 file_names=$(command ls "$this_dir_path/$config_dir")
 
 ohif_sync_upstream() {
-	git checkout master
+	# git checkout master
 	git remote add upstream https://github.com/OHIF/Viewers.git
 	git fetch upstream
-	git checkout user
+	# git checkout user
 	git stash
 	# git stash -a save "message"
 	git merge upstream/master
