@@ -140,7 +140,7 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       instances: {
         search: (studyInstanceUid, queryParameters) => {
           qidoDicomWebClient.headers = getAuthrorizationHeader();
-          qidoSearch.call(undefined, qidoDicomWebClient, studyInstanceUid, null, queryParameters);
+          return qidoSearch.call(undefined, qidoDicomWebClient, studyInstanceUid, null, queryParameters);
         },
       },
     },
@@ -262,7 +262,8 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
         enableStudyLazyLoad,
         filters,
         sortCriteria,
-        sortFunction
+        sortFunction,
+        dicomWebConfig
       );
 
       // first naturalize the data
@@ -314,6 +315,8 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       Object.keys(instancesPerSeries).forEach(seriesInstanceUID =>
         DicomMetadataStore.addInstances(instancesPerSeries[seriesInstanceUID], madeInClient)
       );
+
+      return seriesSummaryMetadata;
     },
 
     _retrieveSeriesMetadataAsync: async (
@@ -333,7 +336,8 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
           enableStudyLazyLoad,
           filters,
           sortCriteria,
-          sortFunction
+          sortFunction,
+          dicomWebConfig
         );
 
       /**
@@ -423,6 +427,9 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
 
       function setSuccessFlag() {
         const study = DicomMetadataStore.getStudy(StudyInstanceUID, madeInClient);
+        if (!study) {
+          return;
+        }
         study.isLoaded = true;
       }
 
@@ -441,6 +448,8 @@ function createDicomWebApi(dicomWebConfig, userAuthenticationService) {
       );
       await Promise.all(seriesDeliveredPromises);
       setSuccessFlag();
+
+      return seriesSummaryMetadata;
     },
     deleteStudyMetadataPromise,
     getImageIdsForDisplaySet(displaySet) {
