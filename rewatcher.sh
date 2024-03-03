@@ -9,13 +9,13 @@ ohif_sync_upstream() {
 	# git checkout master
 	git remote add upstream https://github.com/OHIF/Viewers.git
 	git fetch upstream
-	# git checkout user
+	git checkout user
 	git stash
 	# git stash -a save "message"
 	git merge upstream/master
 	git add .
 	git commit -am "merged upstream/master with user"
-	git remote add origin git@github.com:RU927/re_watcer.git
+	git remote add origin git@github.com:RU927/md_watcher.git
 	git remote set-head origin user
 	git push
 	git stash pop
@@ -49,6 +49,7 @@ apt_orthanc() {
 		liborthancframework-dev
 
 }
+# apt_orthanc
 
 src_dir=~/src
 plugin_dir=/usr/share/orthanc/plugins
