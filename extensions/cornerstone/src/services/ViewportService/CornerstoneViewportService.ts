@@ -1,4 +1,4 @@
-import { PubSubService, ServicesManager } from '@ohif/core';
+import { PubSubService } from '@ohif/core';
 import * as OhifTypes from '@ohif/core/types';
 import {
   RenderingEngine,
@@ -24,6 +24,7 @@ import JumpPresets from '../../utils/JumpPresets';
 
 const EVENTS = {
   VIEWPORT_DATA_CHANGED: 'event::cornerstoneViewportService:viewportDataChanged',
+  VIEWPORT_VOLUMES_CHANGED: 'event::cornerstoneViewportService:viewportVolumesChanged',
 };
 
 /**
@@ -51,14 +52,14 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
   enableResizeDetector: true;
   resizeRefreshRateMs: 200;
   resizeRefreshMode: 'debounce';
-  servicesManager = null;
+  servicesManager: AppTypes.ServicesManager = null;
 
   resizeQueue = [];
   viewportResizeTimer = null;
   gridResizeDelay = 50;
   gridResizeTimeOut = null;
 
-  constructor(servicesManager: ServicesManager) {
+  constructor(servicesManager: AppTypes.ServicesManager) {
     super(EVENTS);
     this.renderingEngine = null;
     this.viewportGridResizeObserver = null;
@@ -182,13 +183,14 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
     const { lutPresentation, positionPresentation } = presentations;
     if (lutPresentation) {
       const { presentation } = lutPresentation;
-
       if (viewport instanceof BaseVolumeViewport) {
-        Object.entries(presentation).forEach(
-          ([volumeId, properties]: [string, Types.ViewportProperties]) => {
+        if (presentation instanceof Map) {
+          presentation.forEach((properties, volumeId) => {
             viewport.setProperties(properties, volumeId);
-          }
-        );
+          });
+        } else {
+          viewport.setProperties(presentation);
+        }
       } else {
         viewport.setProperties(presentation);
       }
@@ -234,7 +236,7 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
     }
 
     const { viewPlaneNormal, viewUp } = csViewport.getCamera();
-    const initialImageIndex = csViewport.getCurrentImageIdIndex();
+    const initialImageIndex = csViewport.getCurrentImageIdIndex() || 0;
     const zoom = csViewport.getZoom();
     const pan = csViewport.getPan();
 
@@ -347,10 +349,7 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
 
     const { stateSyncService, syncGroupService } = this.servicesManager.services;
 
-    const synchronizers = syncGroupService.getSynchronizersForViewport(
-      viewportId,
-      this.renderingEngine.id
-    );
+    const synchronizers = syncGroupService.getSynchronizersForViewport(viewportId);
 
     const { positionPresentationStore, synchronizersStore, lutPresentationStore } =
       stateSyncService.getState();
@@ -533,6 +532,11 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
     cameraProps: unknown
   ): string {
     const viewportInfo = this.getViewportInfo(activeViewportId);
+
+    if (viewportInfo.getViewportType() === csEnums.ViewportType.VOLUME_3D) {
+      return null;
+    }
+
     const { referencedImageId } = cameraProps;
     if (viewportInfo?.contains(displaySetInstanceUID, referencedImageId)) {
       return activeViewportId;
@@ -699,29 +703,37 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
 
     this.viewportsDisplaySets.set(viewport.id, displaySetInstanceUIDs);
 
-    if (hangingProtocolService.getShouldPerformCustomImageLoad()) {
-      // delegate the volume loading to the hanging protocol service if it has a custom image load strategy
-      return hangingProtocolService.runImageLoadStrategy({
-        viewportId: viewport.id,
-        volumeInputArray,
+    const volumesNotLoaded = volumeToLoad.filter(volume => !volume.loadStatus.loaded);
+
+    if (volumesNotLoaded.length) {
+      if (hangingProtocolService.getShouldPerformCustomImageLoad()) {
+        // delegate the volume loading to the hanging protocol service if it has a custom image load strategy
+        return hangingProtocolService.runImageLoadStrategy({
+          viewportId: viewport.id,
+          volumeInputArray,
+        });
+      }
+
+      volumesNotLoaded.forEach(volume => {
+        if (!volume.loadStatus.loading) {
+          volume.load();
+        }
       });
     }
-
-    volumeToLoad.forEach(volume => {
-      if (!volume.loadStatus.loaded && !volume.loadStatus.loading) {
-        volume.load();
-      }
-    });
 
     // This returns the async continuation only
     return this.setVolumesForViewport(viewport, volumeInputArray, presentations);
   }
 
   public async setVolumesForViewport(viewport, volumeInputArray, presentations) {
-    const { displaySetService, toolGroupService } = this.servicesManager.services;
+    const { displaySetService, toolGroupService, viewportGridService } =
+      this.servicesManager.services;
 
     const viewportInfo = this.getViewportInfo(viewport.id);
     const displaySetOptions = viewportInfo.getDisplaySetOptions();
+    const displaySetUIDs = viewportGridService.getDisplaySetsUIDsForViewport(viewport.id);
+    const displaySet = displaySetService.getDisplaySetByUID(displaySetUIDs[0]);
+    const displaySetModality = displaySet?.Modality;
 
     // Todo: use presentations states
     const volumesProperties = volumeInputArray.map((volumeInput, index) => {
@@ -747,7 +759,7 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
       }
 
       if (displayPreset !== undefined) {
-        properties.preset = displayPreset;
+        properties.preset = displayPreset[displaySetModality] || displayPreset.default;
       }
 
       return { properties, volumeId };
@@ -791,6 +803,10 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
     }
 
     viewport.render();
+
+    this._broadcastEvent(this.EVENTS.VIEWPORT_VOLUMES_CHANGED, {
+      viewportInfo,
+    });
   }
 
   private _addSegmentationRepresentationToToolGroupIfNecessary(
@@ -1023,28 +1039,33 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
   private performResize() {
     const isImmediate = false;
 
-    const viewports = this.getRenderingEngine().getViewports();
+    try {
+      const viewports = this.getRenderingEngine().getViewports();
 
-    // Store the current position presentations for each viewport.
-    viewports.forEach(({ id }) => {
-      const presentation = this.getPositionPresentation(id);
-      this.beforeResizePositionPresentations.set(id, presentation);
-    });
+      // Store the current position presentations for each viewport.
+      viewports.forEach(({ id }) => {
+        const presentation = this.getPositionPresentation(id);
+        this.beforeResizePositionPresentations.set(id, presentation);
+      });
 
-    // Resize the rendering engine and render.
-    const renderingEngine = this.renderingEngine;
-    renderingEngine.resize(isImmediate);
-    renderingEngine.render();
+      // Resize the rendering engine and render.
+      const renderingEngine = this.renderingEngine;
+      renderingEngine.resize(isImmediate);
+      renderingEngine.render();
 
-    // Reset the camera for viewports that should reset their camera on resize,
-    // which means only those viewports that have a zoom level of 1.
-    this.beforeResizePositionPresentations.forEach((positionPresentation, viewportId) => {
-      this.setPresentations(viewportId, { positionPresentation });
-    });
+      // Reset the camera for viewports that should reset their camera on resize,
+      // which means only those viewports that have a zoom level of 1.
+      this.beforeResizePositionPresentations.forEach((positionPresentation, viewportId) => {
+        this.setPresentations(viewportId, { positionPresentation });
+      });
 
-    // Resize and render the rendering engine again.
-    renderingEngine.resize(isImmediate);
-    renderingEngine.render();
+      // Resize and render the rendering engine again.
+      renderingEngine.resize(isImmediate);
+      renderingEngine.render();
+    } catch (e) {
+      // This can happen if the resize is too close to navigation or shutdown
+      console.warn('Caught resize exception', e);
+    }
   }
 
   private resetGridResizeTimeout() {
