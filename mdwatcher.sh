@@ -15,7 +15,7 @@ ohif_sync_upstream() {
 	git merge upstream/master
 	git add .
 	git commit -am "merged upstream/master with user"
-	git remote add origin git@github.com:RU927/md_watcher.git
+	git remote add origin git@github.com:chikh-chikh/md_watcher.git
 	git remote set-head origin user
 	git push
 	git stash pop
