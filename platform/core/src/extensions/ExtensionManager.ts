@@ -1,6 +1,5 @@
 import MODULE_TYPES from './MODULE_TYPES';
 import log from '../log';
-import { AppConfig } from '../types/AppConfig';
 import { PubSubService, ServiceProvidersManager } from '../services';
 import { HotkeysManager, CommandsManager } from '../classes';
 import { DataSourceDefinition } from '../types';
@@ -13,7 +12,7 @@ export interface ExtensionConstructor {
   serviceProvidersManager: ServiceProvidersManager;
   commandsManager: CommandsManager;
   hotkeysManager: HotkeysManager;
-  appConfig: AppConfig;
+  appConfig: AppTypes.Config;
 }
 
 /**
@@ -129,6 +128,10 @@ export default class ExtensionManager extends PubSubService {
       ExtensionManager.EVENTS.ACTIVE_DATA_SOURCE_CHANGED,
       this.dataSourceDefs[this.activeDataSource]
     );
+  }
+
+  public getRegisteredExtensionIds() {
+    return [...this.registeredExtensionIds];
   }
 
   /**
