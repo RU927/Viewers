@@ -3,6 +3,127 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.9.0-beta.87](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.86...v3.9.0-beta.87) (2024-09-19)
+
+
+### Bug Fixes
+
+* **ui:** Fixed study component open and closed feedback in Studies panel ([#4384](https://github.com/OHIF/Viewers/issues/4384)) ([365d824](https://github.com/OHIF/Viewers/commit/365d824b98e03b87db294878abde6823abdcf409))
+
+
+
+
+
+# [3.9.0-beta.86](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.85...v3.9.0-beta.86) (2024-09-19)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.85](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.84...v3.9.0-beta.85) (2024-09-17)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.84](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.83...v3.9.0-beta.84) (2024-09-12)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.83](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.82...v3.9.0-beta.83) (2024-09-11)
+
+
+### Features
+
+* **studies-panel:** New OHIF study panel - under experimental flag ([#4254](https://github.com/OHIF/Viewers/issues/4254)) ([7a96406](https://github.com/OHIF/Viewers/commit/7a96406a116e46e62c396855fa64f434e2984b58))
+
+
+
+
+
+# [3.9.0-beta.82](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.81...v3.9.0-beta.82) (2024-09-05)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.81](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.80...v3.9.0-beta.81) (2024-08-27)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.80](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.79...v3.9.0-beta.80) (2024-08-16)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.79](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.78...v3.9.0-beta.79) (2024-08-16)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.78](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.77...v3.9.0-beta.78) (2024-08-15)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.77](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.76...v3.9.0-beta.77) (2024-08-15)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.76](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.75...v3.9.0-beta.76) (2024-08-08)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
+# [3.9.0-beta.75](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.74...v3.9.0-beta.75) (2024-08-07)
+
+
+### Bug Fixes
+
+* **ui:** Tailwind build errors ([#4329](https://github.com/OHIF/Viewers/issues/4329)) ([8e7cc11](https://github.com/OHIF/Viewers/commit/8e7cc1152917f562ea7e6a5f3f7e492b300dc564))
+
+
+
+
+
+# [3.9.0-beta.74](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.73...v3.9.0-beta.74) (2024-08-06)
+
+**Note:** Version bump only for package @ohif/ui-next
+
+
+
+
+
 # [3.9.0-beta.73](https://github.com/OHIF/Viewers/compare/v3.9.0-beta.72...v3.9.0-beta.73) (2024-08-02)
 
 
